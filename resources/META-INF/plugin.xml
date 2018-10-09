@@ -1,0 +1,37 @@
+<idea-plugin>
+  <id>com.your.company.unique.plugin.id</id>
+  <name>Plugin display name here</name>
+  <version>1.0</version>
+  <vendor email="jgc.talboom@avans.nl" url="https://www.github.com/avansti">Avans TI</vendor>
+
+  <description><![CDATA[
+      A small plugin to upload code to your boebot.<br>
+    ]]></description>
+
+  <change-notes><![CDATA[
+
+    ]]>
+  </change-notes>
+
+  <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/build_number_ranges.html for description -->
+  <idea-version since-build="173.0"/>
+
+  <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/plugin_compatibility.html
+       on how to target different products -->
+  <!-- uncomment to enable plugin in all products
+  <depends>com.intellij.modules.lang</depends>
+  -->
+
+  <extensions defaultExtensionNs="com.intellij">
+      <toolWindow id="Boebot Uploader" secondary="false" anchor="bottom" factoryClass="MyToolWindowFactory"/>
+  </extensions>
+
+  <actions>
+    <group id="MyPlugin.SampleMenu" text="Boebot" description="BotBot actions menu">
+      <add-to-group group-id="MainMenu" anchor="last"/>
+      <action id="Myplugin.Textboxes" class="HelloAction" text="Upload to Boebot" description="Adds upload window"/>
+      <action id="Myplugin.Textboxe2" class="HelloAction" text="Settings" description="Change settings for boebot uploading"/>
+    </group>
+  </actions>
+
+</idea-plugin>
