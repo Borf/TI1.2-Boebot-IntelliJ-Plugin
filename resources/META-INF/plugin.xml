@@ -1,6 +1,6 @@
 <idea-plugin>
-  <id>com.your.company.unique.plugin.id</id>
-  <name>Plugin display name here</name>
+  <id>com.AvansTI.BoebotPlugin</id>
+  <name>BoeBot plugin</name>
   <version>1.0</version>
   <vendor email="jgc.talboom@avans.nl" url="https://www.github.com/avansti">Avans TI</vendor>
 

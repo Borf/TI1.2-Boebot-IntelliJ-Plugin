@@ -1,3 +1,6 @@
+import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.roots.ProjectFileIndex;
 import com.jcraft.jsch.*;
 
 import javax.swing.*;
@@ -357,9 +360,9 @@ public class BoeBotControlFrame extends JPanel implements ActionListener {
 		mkdir("/home/pi/upload/" +projectName+"/"+version, session);
 		for(Path p : files)
 		{
-			if(Paths.get(packageDirectory).relativize(p).getParent() != null)
-				mkdir("/home/pi/upload/" +projectName + "/" + version + "/" +  Paths.get(packageDirectory).relativize(p).getParent().toString().replace('\\', '/'), session);
-			sendFile(p.toString(), "/home/pi/upload/" + projectName + "/" + version + "/" + Paths.get(packageDirectory).relativize(p).toString().replace('\\', '/'), session);
+			//if(Paths.get(packageDirectory).relativize(p).getParent() != null)
+			//	mkdir("/home/pi/upload/" +projectName + "/" + version + "/" + p.getFileName() /*Paths.get(packageDirectory).relativize(p).getParent().toString().replace('\\', '/')*/, session);
+			sendFile(p.toString(), "/home/pi/upload/" + projectName + "/" + version + "/" + p.getFileName().toString()/*Paths.get(packageDirectory).relativize(p).toString().replace('\\', '/')*/, session);
 			log.append(".");
 		}
 		log.append("done\n");
