@@ -438,7 +438,7 @@ public class BoeBotControlFrame extends JPanel implements ActionListener {
 	void uploadFiles()
 	{
 		//TODO: use https://intellij-support.jetbrains.com/hc/en-us/community/posts/206800625-Implementing-a-ClassInstrumentingCompiler-how-to-get-the-generated-class-files
-		findMainClass();
+		//findMainClass();
 		final ArrayList<Path> files = new ArrayList<Path>();
 		try {
 			Files.walkFileTree(Paths.get(packageDirectory), new FileVisitor<Path>() {
