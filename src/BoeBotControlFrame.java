@@ -1,3 +1,5 @@
+import com.intellij.compiler.actions.CompileAction;
+import com.intellij.compiler.actions.CompileProjectAction;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.application.ApplicationConfiguration;
 import com.intellij.execution.application.ApplicationConfigurationType;
@@ -18,6 +20,7 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiJavaFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.task.ProjectTaskManager;
@@ -252,7 +255,7 @@ public class BoeBotControlFrame extends JPanel implements ActionListener {
 						{
 							statusLabel.setText("Not connected");
 							debugButton.setEnabled(false);
-							//uploadButton.setEnabled(false);
+							uploadButton.setEnabled(false);
 							runButton.setEnabled(false);
 
 							
@@ -309,10 +312,17 @@ public class BoeBotControlFrame extends JPanel implements ActionListener {
 
 		PsiClass selectedClass = tcc.getSelected();
 		String className = selectedClass.getName();
+		if (selectedClass != null) {
+			String packageName = ((PsiJavaFile) selectedClass.getParent().getContainingFile()).getPackageName();
+			if (!packageName.equals(""))
+				className = packageName + "." + className;
+		}
 		if (className != null || !className.equals("")) {
 			this.mainClass.removeAllItems();
 			this.mainClass.addItem(className);
 		}
+
+
 		return className;
 	}
 
@@ -450,7 +460,7 @@ public class BoeBotControlFrame extends JPanel implements ActionListener {
 	private void mkdir(String path, Session session) {
 		//statusLog.append("Making path " + path + "\n");
 		
-		String command = "mkdir " + path;
+		String command = "mkdir -p " + path;
 		try {
 			Channel channel = session.openChannel("exec");
 			((ChannelExec) channel).setCommand(command);

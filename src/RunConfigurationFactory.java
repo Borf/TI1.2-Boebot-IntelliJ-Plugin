@@ -63,11 +63,6 @@ public class RunConfigurationFactory {
             GlobalSearchScope scope;
             scope = GlobalSearchScope.moduleScope(module);
             PsiClass ecClass = JavaPsiFacade.getInstance(project).findClass("", scope);
-            PsiClass[] g = JavaPsiFacade.getInstance(project).findClasses("", scope);
-            for(PsiClass p : g) {
-
-            }
-
             ClassFilter filter = createClassFilter();
             chooser =
                     factory.createInheritanceClassChooser(
