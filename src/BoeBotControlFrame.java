@@ -1,3 +1,4 @@
+import com.avans.boebotplugin.services.Settings;
 import com.intellij.compiler.actions.CompileAction;
 import com.intellij.compiler.actions.CompileProjectAction;
 import com.intellij.execution.RunManager;
@@ -9,6 +10,7 @@ import com.intellij.ide.util.TreeClassChooser;
 import com.intellij.ide.util.TreeClassChooserFactory;
 import com.intellij.lang.jvm.JvmModifier;
 import com.intellij.openapi.compiler.ex.CompilerPathsEx;
+import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -263,7 +265,7 @@ public class BoeBotControlFrame extends JPanel implements ActionListener {
 							if(session != null)
 								session.disconnect();
 							
-							String ip = "10.10.10.1";							
+							String ip = ServiceManager.getService(project, Settings.class).ip;
 							
 							System.out.println("Connecting to " + ip);
 							session = jsch.getSession("pi", ip);
@@ -343,6 +345,7 @@ public class BoeBotControlFrame extends JPanel implements ActionListener {
 		VirtualFileSystem fs = module.getModuleFile().getFileSystem();
 
 		PsiDirectory root = PsiManager.getInstance(project).findDirectory(module.getModuleFile().getParent());
+	//TODO: maybe use 'project.getBaseDir()' instead of module.getModuleFile().getFileSystem()
 
 		this.mainClass.removeAllItems();
 		scanDir(root);
@@ -434,6 +437,7 @@ public class BoeBotControlFrame extends JPanel implements ActionListener {
 	
 	void uploadFiles()
 	{
+		//TODO: use https://intellij-support.jetbrains.com/hc/en-us/community/posts/206800625-Implementing-a-ClassInstrumentingCompiler-how-to-get-the-generated-class-files
 		findMainClass();
 		final ArrayList<Path> files = new ArrayList<Path>();
 		try {
@@ -679,7 +683,7 @@ public class BoeBotControlFrame extends JPanel implements ActionListener {
 	private void closeRunningApplication() {
 		try
 		{
-			String ip = "10.10.10.1";							
+			String ip = ServiceManager.getService(project, Settings.class).ip;
 
 			Socket socket = new Socket();
 			socket.connect(new InetSocketAddress(ip, 9999), 500);

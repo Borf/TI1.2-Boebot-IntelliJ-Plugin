@@ -24,6 +24,8 @@
 
   <extensions defaultExtensionNs="com.intellij">
       <toolWindow id="Boebot Uploader" secondary="false" anchor="bottom" factoryClass="MyToolWindowFactory"/>
+      <projectService serviceInterface="com.avans.boebotplugin.services.Settings" serviceImplementation="com.avans.boebotplugin.services.Settings"/>
+      <projectConfigurable groupId="editor" instance="com.avans.boebotplugin.services.SettingsConfig" id="boebot.configGUI"/>
   </extensions>
 
   <actions>
