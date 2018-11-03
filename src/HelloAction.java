@@ -7,8 +7,9 @@ public class HelloAction extends AnAction {
     public HelloAction() {
         super("Hello");
     }
-
+    public static AnActionEvent event;
     public void actionPerformed(AnActionEvent event) {
+        HelloAction.event = event;
         Project project = event.getProject();
 //        Messages.showMessageDialog(project, "Hello world!", "Greeting", Messages.getInformationIcon());
 

@@ -7,6 +7,7 @@ import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.ide.util.ClassFilter;
 import com.intellij.ide.util.TreeClassChooser;
 import com.intellij.ide.util.TreeClassChooserFactory;
+import com.intellij.lang.jvm.JvmModifier;
 import com.intellij.openapi.compiler.ex.CompilerPathsEx;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.module.Module;
@@ -17,11 +18,10 @@ import com.intellij.openapi.roots.OrderEnumerator;
 import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.JavaPsiFacade;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiJavaFile;
-import com.intellij.psi.PsiManager;
+import com.intellij.openapi.vfs.VirtualFileSystem;
+import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.task.ProjectTaskManager;
 import com.intellij.task.ProjectTaskNotification;
@@ -308,28 +308,45 @@ public class BoeBotControlFrame extends JPanel implements ActionListener {
 	}
 
 
-	private String findMainClass() {
+	private void scanDir(PsiDirectory dir)
+	{
+		for(PsiDirectory sub : dir.getSubdirectories())
+			scanDir(sub);
+
+		for(PsiFile file : dir.getFiles())
+		{
+			if(file instanceof PsiJavaFile)
+			{
+				PsiJavaFile javaFile = (PsiJavaFile)file;
+
+				for(PsiClass clazz : javaFile.getClasses())
+				{
+					for(PsiMethod method : clazz.getAllMethods())
+					{
+						if(method.hasModifier(JvmModifier.STATIC) && method.getName().equals("main") && method.hasParameters())
+						{
+							this.mainClass.addItem(clazz.getQualifiedName());
+						}
+					}
+				}
+			}
+
+		}
+	}
+
+	private void findMainClass() {
 
 		Module module = ModuleManager.getInstance(this.project).getModules()[0];
-		RunConfigurationFactory factory = new RunConfigurationFactory(this.project);
-		TreeClassChooser tcc = factory.chooseMainClassForProject(this.project);
-		if (tcc.getSelected() == null)
-			return null;
 
-		PsiClass selectedClass = tcc.getSelected();
-		String className = selectedClass.getName();
-		if (selectedClass != null) {
-			String packageName = ((PsiJavaFile) selectedClass.getParent().getContainingFile()).getPackageName();
-			if (!packageName.equals(""))
-				className = packageName + "." + className;
-		}
-		if (className != null || !className.equals("")) {
-			this.mainClass.removeAllItems();
-			this.mainClass.addItem(className);
-		}
+		VirtualFileSystem fs = module.getModuleFile().getFileSystem();
+
+		PsiDirectory root = PsiManager.getInstance(project).findDirectory(module.getModuleFile().getParent());
+
+		this.mainClass.removeAllItems();
+		scanDir(root);
 
 
-		return className;
+
 	}
 
 	void runCode()
