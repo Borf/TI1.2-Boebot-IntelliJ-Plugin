@@ -163,10 +163,17 @@ public class BoeBotControlFrame extends JPanel implements ActionListener {
 		uploadButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) 
 			{
+				log.setText("");
 				ProjectTaskManager.getInstance(project).rebuild(ModuleManager.getInstance(project).getModules(), new ProjectTaskNotification()
 				{
 					@Override
 					public void finished(@NotNull ProjectTaskResult projectTaskResult) {
+						log.append("Compilation result: "+
+								projectTaskResult.getErrors()+ " errors, " +
+								projectTaskResult.getWarnings() + " warnings\n");
+						if(projectTaskResult.isAborted())
+							log.append("Compilation aborted!!!! Please check your code\n");
+						else
 						(new Thread()
 						{
 							public void run()
@@ -179,7 +186,6 @@ public class BoeBotControlFrame extends JPanel implements ActionListener {
 
 								if(session.isConnected())
 								{
-									log.setText("");
 									DateFormat df = new SimpleDateFormat("yyyy-MM-dd_hh.mm.ss");
 									Date now = Calendar.getInstance().getTime();
 									String version = df.format(now);
