@@ -20,7 +20,11 @@ import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.task.ProjectTaskManager;
+import com.intellij.task.ProjectTaskNotification;
+import com.intellij.task.ProjectTaskResult;
 import com.jcraft.jsch.*;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.border.BevelBorder;
@@ -159,34 +163,37 @@ public class BoeBotControlFrame extends JPanel implements ActionListener {
 		uploadButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) 
 			{
-
-				// Check for main class
-
-				(new Thread()
+				ProjectTaskManager.getInstance(project).rebuild(ModuleManager.getInstance(project).getModules(), new ProjectTaskNotification()
 				{
-					public void run()
-					{
-						if(!BoeBotControlFrame.this.isVisible())
-							return;
-						
-						closeRunningApplication();
-						delay(100);
-						
-						if(session.isConnected())
+					@Override
+					public void finished(@NotNull ProjectTaskResult projectTaskResult) {
+						(new Thread()
 						{
-							log.setText("");
-							DateFormat df = new SimpleDateFormat("yyyy-MM-dd_hh.mm.ss");
-							Date now = Calendar.getInstance().getTime();        
-							String version = df.format(now);
-							
-							versions.addItem(version);
-							versions.setSelectedItem(version);
-							
-							uploadFiles();
-							runCode();
-						}
+							public void run()
+							{
+								if(!BoeBotControlFrame.this.isVisible())
+									return;
+
+								closeRunningApplication();
+								delay(100);
+
+								if(session.isConnected())
+								{
+									log.setText("");
+									DateFormat df = new SimpleDateFormat("yyyy-MM-dd_hh.mm.ss");
+									Date now = Calendar.getInstance().getTime();
+									String version = df.format(now);
+
+									versions.addItem(version);
+									versions.setSelectedItem(version);
+
+									uploadFiles();
+									runCode();
+								}
+							}
+						}).start();
 					}
-				}).start();
+				});
 			}
 		});
 		
