@@ -1,6 +1,25 @@
+import com.intellij.execution.RunManager;
+import com.intellij.execution.application.ApplicationConfiguration;
+import com.intellij.execution.application.ApplicationConfigurationType;
+import com.intellij.execution.configurations.RunConfiguration;
+import com.intellij.ide.util.ClassFilter;
+import com.intellij.ide.util.TreeClassChooser;
+import com.intellij.ide.util.TreeClassChooserFactory;
+import com.intellij.openapi.compiler.ex.CompilerPathsEx;
+import com.intellij.openapi.fileTypes.FileType;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.roots.OrderEnumerator;
 import com.intellij.openapi.roots.ProjectFileIndex;
+import com.intellij.openapi.roots.ProjectRootManager;
+import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiManager;
+import com.intellij.psi.search.GlobalSearchScope;
 import com.jcraft.jsch.*;
 
 import javax.swing.*;
@@ -16,16 +35,20 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.security.InvalidParameterException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.stream.Collectors;
 
 public class BoeBotControlFrame extends JPanel implements ActionListener {
 
 
 	String packageDirectory;
+	String outputRoot;
 	
 	JComboBox<String> mainClass;
 	JComboBox<String> versions;
@@ -39,12 +62,22 @@ public class BoeBotControlFrame extends JPanel implements ActionListener {
 	InputStream execIn = null;
 	InputStream execErr = null;
 	
-	Thread connectThread = null;
-	String projectName;
+	private Thread connectThread = null;
+	private String projectName;
+	private Project project;
 	
-	public BoeBotControlFrame(final String packageDirectory, final String projectName, String mainClass)
+	public BoeBotControlFrame(final String packageDirectory, final String projectName, Project project)
 	{
-//		super("Boebot monitor for " + projectName + " in path " + packageDirectory);
+		this.project = project;
+		if (this.project == null)
+			throw new InvalidParameterException("Project cannot be null");
+
+		Module module = ModuleManager.getInstance(this.project).getModules()[0];
+		String[] outputPaths = CompilerPathsEx.getOutputPaths(ModuleManager.getInstance(this.project).getModules());
+		outputRoot = outputPaths[0];
+		//project.getProjectFilePath()
+
+		// 		super("Boebot monitor for " + projectName + " in path " + packageDirectory);
 		this.projectName = projectName;
 		this.packageDirectory = packageDirectory;
 		setSize(800, 600);
@@ -71,7 +104,7 @@ public class BoeBotControlFrame extends JPanel implements ActionListener {
 		this.add(topPanel, BorderLayout.NORTH);
 
 		topPanel.add(new JLabel("Main Class"));
-		topPanel.add(this.mainClass = new JComboBox<String>(new String[] { mainClass } ));
+		topPanel.add(this.mainClass = new JComboBox<String>(new String[] { "RobotMain" } ));
 		topPanel.add(this.versions = new JComboBox<String>());
 		
 		
@@ -79,19 +112,21 @@ public class BoeBotControlFrame extends JPanel implements ActionListener {
 		final JButton uploadButton = new JButton("Upload");
 		final JButton runButton = new JButton("Run");
 		final JButton debugButton = new JButton("Debug");
+		final JButton testButton = new JButton("Test");
 
 		statusLabel.setText("Not connected");
 		debugButton.setEnabled(false);
 		uploadButton.setEnabled(false);
 		runButton.setEnabled(false);
+		testButton.setEnabled(true);
 
 		this.mainClass.addPopupMenuListener(new PopupMenuListener() {
 			public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
 //				if(BoeBotControlFrame.this.extension != null)
 //				{
-//					ArrayList<String> mainClasses = BoeBotControlFrame.this.extension.getMainClasses();
+//					//ArrayList<String> mainClasses = BoeBotControlFrame.this.extension.getMainClasses();
 //					BoeBotControlFrame.this.mainClass.removeAllItems();
-//					for(String item : mainClasses)
+//					//for(String item : mainClasses)
 //						BoeBotControlFrame.this.mainClass.addItem(item);
 //
 //
@@ -124,6 +159,9 @@ public class BoeBotControlFrame extends JPanel implements ActionListener {
 		uploadButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) 
 			{
+
+				// Check for main class
+
 				(new Thread()
 				{
 					public void run()
@@ -164,6 +202,11 @@ public class BoeBotControlFrame extends JPanel implements ActionListener {
 				}
 			}
 		});
+
+		topPanel.add(testButton);
+		testButton.addActionListener(e -> {
+			findMainClass();
+		});
 		
 		topPanel.add(debugButton);
 		
@@ -202,7 +245,7 @@ public class BoeBotControlFrame extends JPanel implements ActionListener {
 						{
 							statusLabel.setText("Not connected");
 							debugButton.setEnabled(false);
-							uploadButton.setEnabled(false);
+							//uploadButton.setEnabled(false);
 							runButton.setEnabled(false);
 
 							
@@ -247,7 +290,25 @@ public class BoeBotControlFrame extends JPanel implements ActionListener {
 		
 		setVisible(true);
 	}
-	
+
+
+	private String findMainClass() {
+
+		Module module = ModuleManager.getInstance(this.project).getModules()[0];
+		RunConfigurationFactory factory = new RunConfigurationFactory(this.project);
+		TreeClassChooser tcc = factory.chooseMainClassForProject(this.project);
+		if (tcc.getSelected() == null)
+			return null;
+
+		PsiClass selectedClass = tcc.getSelected();
+		String className = selectedClass.getName();
+		if (className != null || !className.equals("")) {
+			this.mainClass.removeAllItems();
+			this.mainClass.addItem(className);
+		}
+		return className;
+	}
+
 	void runCode()
 	{
 		runCode(false);
@@ -269,8 +330,7 @@ public class BoeBotControlFrame extends JPanel implements ActionListener {
 					"echo "+projectName + "/" + versions.getSelectedItem()+" > /home/pi/upload/lastrun;\n" +
 					"echo "+BoeBotControlFrame.this.mainClass.getSelectedItem()+" >> /home/pi/upload/lastrun;\n" +
 					"sudo java -Xdebug -Xrunjdwp:transport=dt_socket,address=8000,server=y,suspend="+(suspend ? "y" : "n")+" -cp \".:/home/pi/BoeBotLib/BoeBotLib.jar\" -Djava.library.path=/home/pi/BoeBotLib " + BoeBotControlFrame.this.mainClass.getSelectedItem();
-			
-			
+
 			execChannel = session.openChannel("exec");
 			((ChannelExec) execChannel).setCommand(command);
 			execChannel.setInputStream(null);
@@ -301,7 +361,7 @@ public class BoeBotControlFrame extends JPanel implements ActionListener {
 					int i = execIn.read(tmp, 0, 1024);
 					if (i < 0)
 						break;
-					if(!new String(tmp, 0, i).equals("Listening for transporyt dt_socket at address: 8000\n"))
+					if(!new String(tmp, 0, i).equals("Listening for transport dt_socket at address: 8000\n"))
 						log.append(new String(tmp, 0, i));
 				}
 				while (execErr.available() > 0) {
@@ -332,6 +392,7 @@ public class BoeBotControlFrame extends JPanel implements ActionListener {
 	
 	void uploadFiles()
 	{
+		//findMainClass();
 		final ArrayList<Path> files = new ArrayList<Path>();
 		try {
 			Files.walkFileTree(Paths.get(packageDirectory), new FileVisitor<Path>() {
@@ -358,11 +419,21 @@ public class BoeBotControlFrame extends JPanel implements ActionListener {
 		log.append("Uploading " + files.size() + " files....");
 		mkdir("/home/pi/upload/" +projectName, session);
 		mkdir("/home/pi/upload/" +projectName+"/"+version, session);
-		for(Path p : files)
-		{
-			//if(Paths.get(packageDirectory).relativize(p).getParent() != null)
-			//	mkdir("/home/pi/upload/" +projectName + "/" + version + "/" + p.getFileName() /*Paths.get(packageDirectory).relativize(p).getParent().toString().replace('\\', '/')*/, session);
-			sendFile(p.toString(), "/home/pi/upload/" + projectName + "/" + version + "/" + p.getFileName().toString()/*Paths.get(packageDirectory).relativize(p).toString().replace('\\', '/')*/, session);
+		String sourcePath = packageDirectory.replace('/', '\\') + "\\src";
+
+		for(Path p : files) {
+			String fullPath = sourcePath;
+			if (p.toString().contains(outputRoot))
+				fullPath = outputRoot;
+
+			if (Paths.get(fullPath).relativize(p).getParent() != null) {
+				mkdir("/home/pi/upload/" + projectName + "/" + version + "/" + Paths.get(fullPath).relativize(p).getParent().toString().replace('\\', '/'), session);
+				sendFile(p.toString(), "/home/pi/upload/" + projectName + "/" + version + "/" + Paths.get(fullPath).relativize(p).toString().replace('\\', '/'), session);
+			} else {
+				sendFile(p.toString(), "/home/pi/upload/" + projectName + "/" + version + "/" + p.getFileName(), session);
+			}
+
+
 			log.append(".");
 		}
 		log.append("done\n");
@@ -391,14 +462,13 @@ public class BoeBotControlFrame extends JPanel implements ActionListener {
 
 
 
-
-	void sendFile(String lfile, String rfile, Session session) {
+	void sendFile(String lFile, String rFile, Session session) {
 		try {
-			//statusLog.append("Uploading " + lfile + " to " + rfile + "\n"); // out.flush();
+			//statusLog.append("Uploading " + lFile + " to " + rFile + "\n"); // out.flush();
 			boolean ptimestamp = true;
 
-			// exec 'scp -t rfile' remotely
-			String command = "scp " + (ptimestamp ? "-p" : "") + " -t '" + rfile + "'";
+			// exec 'scp -t rFile' remotely
+			String command = "scp " + (ptimestamp ? "-p" : "") + " -t '" + rFile + "'";
 			Channel channel = session.openChannel("exec");
 			((ChannelExec) channel).setCommand(command);
 
@@ -413,7 +483,7 @@ public class BoeBotControlFrame extends JPanel implements ActionListener {
 				return;
 			}
 
-			File _lfile = new File(lfile);
+			File _lfile = new File(lFile);
 
 			if (ptimestamp) {
 				command = "T" + (_lfile.lastModified() / 1000) + " 0";
@@ -432,12 +502,12 @@ public class BoeBotControlFrame extends JPanel implements ActionListener {
 			// include '/'
 			long filesize = _lfile.length();
 			command = "C0666 " + filesize + " ";
-			if (lfile.lastIndexOf('/') > 0) {
-				command += "'"+lfile.substring(lfile.lastIndexOf('/') + 1) + "'";
-			}else if (lfile.lastIndexOf('\\') > 0) {
-				command += "'"+lfile.substring(lfile.lastIndexOf('\\') + 1) + "'";
+			if (lFile.lastIndexOf('/') > 0) {
+				command += "'"+lFile.substring(lFile.lastIndexOf('/') + 1) + "'";
+			}else if (lFile.lastIndexOf('\\') > 0) {
+				command += "'"+lFile.substring(lFile.lastIndexOf('\\') + 1) + "'";
 			} else {
-				command += "'" + lfile + "'";
+				command += "'" + lFile + "'";
 			}
 			command += "\n";
 
@@ -447,9 +517,9 @@ public class BoeBotControlFrame extends JPanel implements ActionListener {
 				return;
 			}
 
-			// send a content of lfile
+			// send a content of lFile
 			FileInputStream fis;
-			fis = new FileInputStream(lfile);
+			fis = new FileInputStream(lFile);
 
 			byte[] buf = new byte[1024];
 			while (true) {

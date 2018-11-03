@@ -7,6 +7,7 @@ import com.intellij.ide.util.ClassFilter;
 import com.intellij.ide.util.TreeClassChooser;
 import com.intellij.ide.util.TreeClassChooserFactory;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
@@ -24,17 +25,27 @@ public class RunConfigurationFactory {
     private final RunManager runManager;
     private final Module module;
     private final String configurationType;
+    private final Project project;
 
     public RunConfigurationFactory(RunManager runManager, Module module, String configurationType) {
         this.runManager = runManager;
+        this.project = null;
         this.module = module;
-        this.configurationType = configurationType;
+        this.configurationType = "Application";//configurationType;
+        logger.info("RunConfigurationFactory initialized.");
+    }
+
+    public RunConfigurationFactory(Project project) {
+        this.project = project;
+        this.runManager = RunManager.getInstance(project);
+        this.module = ModuleManager.getInstance(project).getModules()[0];
+        this.configurationType = "Application";//configurationType;
         logger.info("RunConfigurationFactory initialized.");
     }
 
     public boolean checkConfigurationType() {
         logger.info("Checking configurationType.");
-        return !runManager
+        return  !runManager
                 .getSelectedConfiguration()
                 .getConfiguration()
                 .getType()
@@ -52,6 +63,11 @@ public class RunConfigurationFactory {
             GlobalSearchScope scope;
             scope = GlobalSearchScope.moduleScope(module);
             PsiClass ecClass = JavaPsiFacade.getInstance(project).findClass("", scope);
+            PsiClass[] g = JavaPsiFacade.getInstance(project).findClasses("", scope);
+            for(PsiClass p : g) {
+
+            }
+
             ClassFilter filter = createClassFilter();
             chooser =
                     factory.createInheritanceClassChooser(
@@ -131,7 +147,7 @@ public class RunConfigurationFactory {
      * @param appCon Current configuration
      * @return Whether the class has a valid main class or not
      */
-    private boolean checkForMainClass(ApplicationConfiguration appCon, Project project) {
+    public boolean checkForMainClass(ApplicationConfiguration appCon, Project project) {
         if (appCon.getMainClass() == null) {
             logger.info("No main class was found, prompting user to choose one.");
             TreeClassChooser chooser = chooseMainClassForProject(project);

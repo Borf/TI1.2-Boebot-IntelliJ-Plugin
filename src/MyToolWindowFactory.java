@@ -20,9 +20,8 @@ public class MyToolWindowFactory implements ToolWindowFactory {
 
         // __TODO__ find main class
         //RunConfigurationFactory runConfig = new RunConfigurationFactory(RunManager.getInstance(project), ModuleManager.getInstance(project).getModules()[0], "");
-
         //runConfig.chooseMainClassForProject(project);
-        BoeBotControlFrame controlFrame = new BoeBotControlFrame(rootPath, projectName, "RobotMain");
+        BoeBotControlFrame controlFrame = new BoeBotControlFrame(rootPath, projectName, project);
 
         ContentFactory cf = ContentFactory.SERVICE.getInstance();
         Content content = cf.createContent(controlFrame, "", true);
