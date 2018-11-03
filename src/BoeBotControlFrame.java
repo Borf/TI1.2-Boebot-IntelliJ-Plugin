@@ -12,6 +12,7 @@ import com.intellij.openapi.compiler.ex.CompilerPathsEx;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.OrderEnumerator;
@@ -60,7 +61,7 @@ public class BoeBotControlFrame extends JPanel implements ActionListener {
 	JComboBox<String> mainClass;
 	JComboBox<String> versions;
 	JTextArea log;
-	JLabel statusLabel;
+	JLabel status;
 	
 	
 	Session session = null;
@@ -72,7 +73,10 @@ public class BoeBotControlFrame extends JPanel implements ActionListener {
 	private Thread connectThread = null;
 	private String projectName;
 	private Project project;
-	
+
+	ImageIcon statusConnected = new ImageIcon(getClass().getResource("/icons/status_connected.png"));
+	ImageIcon statusError = new ImageIcon(getClass().getResource("/icons/status_error.png"));
+
 	public BoeBotControlFrame(final String packageDirectory, final String projectName, Project project)
 	{
 		this.project = project;
@@ -97,52 +101,43 @@ public class BoeBotControlFrame extends JPanel implements ActionListener {
 		log.setBorder(BorderFactory.createEtchedBorder());
 		DefaultCaret caret = (DefaultCaret)log.getCaret();
 		caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);		
-		
-		JPanel statusBar = new JPanel(new FlowLayout(FlowLayout.LEFT));
-		statusBar.setBorder(BorderFactory.createBevelBorder(BevelBorder.RAISED));
-		this.add(statusBar, BorderLayout.SOUTH);
-		
-		statusBar.add(statusLabel = new JLabel("Connecting..."));
-		statusLabel.setBorder(BorderFactory.createLoweredBevelBorder());
-		statusLabel.setMinimumSize(new Dimension(400, 20));
-		
+
 		JPanel topPanel = new JPanel();
 		topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.LINE_AXIS));
 		this.add(topPanel, BorderLayout.NORTH);
 
+		topPanel.add(new JLabel("Status"));
+		topPanel.add(this.status = new JLabel());
 		topPanel.add(new JLabel("Main Class"));
-		topPanel.add(this.mainClass = new JComboBox<String>(new String[] { "RobotMain" } ));
+		topPanel.add(this.mainClass = new JComboBox<String>(new String[] { "" } ));
+		topPanel.add(new JLabel("Versions"));
 		topPanel.add(this.versions = new JComboBox<String>());
-		
-		
-		
+
+		DumbService.getInstance(this.project).runWhenSmart(new Runnable() {
+			@Override
+			public void run() {
+
+				findMainClass();
+			}
+		});
+
 		final JButton uploadButton = new JButton("Upload");
 		final JButton runButton = new JButton("Run");
-		final JButton debugButton = new JButton("Debug");
-		final JButton testButton = new JButton("Test");
+//		final JButton debugButton = new JButton("Debug");
+		final JButton clearButton = new JButton("Clear");
 
-		statusLabel.setText("Not connected");
-		debugButton.setEnabled(false);
+		status.setIcon(statusError);
+//		debugButton.setEnabled(false);
 		uploadButton.setEnabled(false);
 		runButton.setEnabled(false);
-		testButton.setEnabled(true);
+		clearButton.setEnabled(true);
 
 		this.mainClass.addPopupMenuListener(new PopupMenuListener() {
 			public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
-//				if(BoeBotControlFrame.this.extension != null)
-//				{
-//					//ArrayList<String> mainClasses = BoeBotControlFrame.this.extension.getMainClasses();
-//					BoeBotControlFrame.this.mainClass.removeAllItems();
-//					//for(String item : mainClasses)
-//						BoeBotControlFrame.this.mainClass.addItem(item);
-//
-//
-//				}
+				findMainClass();
 			}
-			public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
-			}
-			public void popupMenuCanceled(PopupMenuEvent e) {
-			}
+			public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {		}
+			public void popupMenuCanceled(PopupMenuEvent e) {		}
 		});
 		
 		
@@ -219,12 +214,12 @@ public class BoeBotControlFrame extends JPanel implements ActionListener {
 			}
 		});
 
-		topPanel.add(testButton);
-		testButton.addActionListener(e -> {
-			findMainClass();
+		topPanel.add(clearButton);
+		clearButton.addActionListener(e -> {
+			log.setText("");
 		});
 		
-		topPanel.add(debugButton);
+		/*topPanel.add(debugButton);
 		
 		debugButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
@@ -237,7 +232,7 @@ public class BoeBotControlFrame extends JPanel implements ActionListener {
 //					new BoeBotDebugger(packageDirectory, bluej);
 				}
 			}
-		});
+		});*/
 		
 		
 		
@@ -259,8 +254,8 @@ public class BoeBotControlFrame extends JPanel implements ActionListener {
 					try {
 						if(session == null || !session.isConnected())
 						{
-							statusLabel.setText("Not connected");
-							debugButton.setEnabled(false);
+							status.setIcon(statusError);
+					//		debugButton.setEnabled(false);
 							uploadButton.setEnabled(false);
 							runButton.setEnabled(false);
 
@@ -282,7 +277,7 @@ public class BoeBotControlFrame extends JPanel implements ActionListener {
 							
 							if(session.isConnected())
 							{
-								statusLabel.setText("Connected");
+								status.setIcon(statusConnected);
 								//debugButton.setEnabled(true);
 								uploadButton.setEnabled(true);
 								runButton.setEnabled(true);
@@ -325,7 +320,14 @@ public class BoeBotControlFrame extends JPanel implements ActionListener {
 					{
 						if(method.hasModifier(JvmModifier.STATIC) && method.getName().equals("main") && method.hasParameters())
 						{
-							this.mainClass.addItem(clazz.getQualifiedName());
+							String name = clazz.getQualifiedName();
+							boolean found = false;
+							for(int i = 0; i < this.mainClass.getItemCount(); i++)
+								if(this.mainClass.getItemAt(i).equals(name))
+									found = true;
+
+							if(!found)
+								this.mainClass.addItem(clazz.getQualifiedName());
 						}
 					}
 				}
@@ -432,7 +434,7 @@ public class BoeBotControlFrame extends JPanel implements ActionListener {
 	
 	void uploadFiles()
 	{
-		//findMainClass();
+		findMainClass();
 		final ArrayList<Path> files = new ArrayList<Path>();
 		try {
 			Files.walkFileTree(Paths.get(packageDirectory), new FileVisitor<Path>() {
