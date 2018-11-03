@@ -27,7 +27,6 @@
       <projectService serviceInterface="com.avans.boebotplugin.services.Settings" serviceImplementation="com.avans.boebotplugin.services.Settings"/>
       <projectConfigurable groupId="editor" instance="com.avans.boebotplugin.services.SettingsConfig" id="boebot.configGUI"/>
     <projectTemplate projectType="JAVA_MODULE" templatePath="resources/projectTemplates/Boebot_Application.zip" category="false" />
-    <toolWindow id="Boebot Uploader" secondary="false" anchor="bottom" factoryClass="MyToolWindowFactory"/>
   </extensions>
 
 
