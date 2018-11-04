@@ -1,17 +1,16 @@
-import com.intellij.execution.RunManager;
+package com.avans.boebotplugin.gui;
+
+import com.avans.boebotplugin.gui.BoeBotControlFrame;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
-
-public class MyToolWindowFactory implements ToolWindowFactory {
+public class BoeBotControlFrameFactory implements ToolWindowFactory {
     @Override
     public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
 

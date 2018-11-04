@@ -23,18 +23,17 @@
   -->
 
   <extensions defaultExtensionNs="com.intellij">
-      <toolWindow id="Boebot Uploader" secondary="false" anchor="bottom" factoryClass="MyToolWindowFactory"/>
+      <toolWindow id="Boebot Uploader" secondary="false" anchor="bottom" factoryClass="com.avans.boebotplugin.gui.BoeBotControlFrameFactory"/>
       <projectService serviceInterface="com.avans.boebotplugin.services.Settings" serviceImplementation="com.avans.boebotplugin.services.Settings"/>
       <projectConfigurable groupId="editor" instance="com.avans.boebotplugin.services.SettingsConfig" id="boebot.configGUI"/>
-    <projectTemplate projectType="JAVA_MODULE" templatePath="resources/projectTemplates/Boebot_Application.zip" category="false" />
+      <projectTemplate projectType="BoeBot" templatePath="projectTemplates/Boebot_Application.zip" category="true" />
   </extensions>
 
 
   <actions>
     <group id="MyPlugin.SampleMenu" text="Boebot" description="BotBot actions menu">
       <add-to-group group-id="MainMenu" anchor="last"/>
-      <action id="Myplugin.Textboxes" class="HelloAction" text="Upload to Boebot" description="Adds upload window"/>
-      <action id="Myplugin.Textboxe2" class="HelloAction" text="Settings" description="Change settings for boebot uploading"/>
+      <action id="BoeBot.OpenPanel" class="com.avans.boebotplugin.actions.OpenBoeBotPanel" text="Open BoeBot Panel" description="Opens a panel to upload code to your BoeBot"/>
     </group>
   </actions>
 

@@ -1,15 +1,16 @@
+package com.avans.boebotplugin.actions;
+
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.wm.ToolWindowManager;
 
-public class HelloAction extends AnAction {
-    public HelloAction() {
-        super("Hello");
+public class OpenBoeBotPanel extends AnAction {
+    public OpenBoeBotPanel() {
+        super("Open BoeBot Panel");
     }
     public static AnActionEvent event;
     public void actionPerformed(AnActionEvent event) {
-        HelloAction.event = event;
+        OpenBoeBotPanel.event = event;
         Project project = event.getProject();
 //        Messages.showMessageDialog(project, "Hello world!", "Greeting", Messages.getInformationIcon());
 
