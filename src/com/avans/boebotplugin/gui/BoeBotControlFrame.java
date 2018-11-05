@@ -72,7 +72,7 @@ public class BoeBotControlFrame extends JPanel implements ActionListener {
 		//project.getProjectFilePath()
 
 		// 		super("Boebot monitor for " + projectName + " in path " + packageDirectory);
-		this.projectName = projectName;
+		this.projectName = projectName.replace(' ', '_');
 		this.packageDirectory = packageDirectory;
 		setSize(800, 600);
 
@@ -202,23 +202,6 @@ public class BoeBotControlFrame extends JPanel implements ActionListener {
 			log.setText("");
 		});
 		
-		/*topPanel.add(debugButton);
-		
-		debugButton.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) {
-				if(session.isConnected())
-				{
-					closeRunningApplication();
-					log.setText("");
-			//		runCode(true);
-			//		delay(250);
-//					new BoeBotDebugger(packageDirectory, bluej);
-				}
-			}
-		});*/
-		
-		
-		
 		
 		new Timer(10, this).start();
 		
@@ -261,7 +244,6 @@ public class BoeBotControlFrame extends JPanel implements ActionListener {
 							if(session.isConnected())
 							{
 								status.setIcon(statusConnected);
-								//debugButton.setEnabled(true);
 								uploadButton.setEnabled(true);
 								runButton.setEnabled(true);
 							}
@@ -323,7 +305,7 @@ public class BoeBotControlFrame extends JPanel implements ActionListener {
 
 		Module module = ModuleManager.getInstance(this.project).getModules()[0];
 
-		VirtualFileSystem fs = module.getModuleFile().getFileSystem();
+		//VirtualFileSystem fs = module.getModuleFile().getFileSystem();
 
 		PsiDirectory root = PsiManager.getInstance(project).findDirectory(module.getModuleFile().getParent());
 	//TODO: maybe use 'project.getBaseDir()' instead of module.getModuleFile().getFileSystem()
@@ -350,7 +332,7 @@ public class BoeBotControlFrame extends JPanel implements ActionListener {
 			}
 			
 			String command = 
-					"cd /home/pi/upload/"+projectName + "/" + versions.getSelectedItem()+"; " +
+					"cd /home/pi/upload/" + projectName + "/" + versions.getSelectedItem()+"; " +
 					"sudo killall -q java; " +
 					"sleep 0.5; " +
 					"echo "+projectName + "/" + versions.getSelectedItem()+" > /home/pi/upload/lastrun;\n" +
@@ -444,14 +426,19 @@ public class BoeBotControlFrame extends JPanel implements ActionListener {
 		String version = (String) versions.getSelectedItem();
 		log.append("New version is called '" + version + "'\n");
 		log.append("Uploading " + files.size() + " files....");
-		mkdir("/home/pi/upload/" +projectName, session);
-		mkdir("/home/pi/upload/" +projectName+"/"+version, session);
-		String sourcePath = packageDirectory.replace('/', '\\') + "\\src";
+		mkdir("/home/pi/upload/" + projectName, session);
+		mkdir("/home/pi/upload/" + projectName + "/" + version, session);
 
+		String sourcePath = packageDirectory.replace('\\', '/') + "/src";
+		String outputPath = outputRoot.replace('\\', '/');
 		for(Path p : files) {
-			String fullPath = sourcePath;
-			if (p.toString().contains(outputRoot))
-				fullPath = outputRoot;
+			String path = p.toString().replace('\\', '/');
+			String fullPath = outputPath;
+			if (path.contains(sourcePath))
+				fullPath = sourcePath;
+
+			System.out.println("Path: " + path);
+			System.out.println("Full Path: " + fullPath);
 
 			if (Paths.get(fullPath).relativize(p).getParent() != null) {
 				mkdir("/home/pi/upload/" + projectName + "/" + version + "/" + Paths.get(fullPath).relativize(p).getParent().toString().replace('\\', '/'), session);
@@ -459,8 +446,6 @@ public class BoeBotControlFrame extends JPanel implements ActionListener {
 			} else {
 				sendFile(p.toString(), "/home/pi/upload/" + projectName + "/" + version + "/" + p.getFileName(), session);
 			}
-
-
 			log.append(".");
 		}
 		log.append("done\n");
