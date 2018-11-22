@@ -1,5 +1,4 @@
 package com.avans.boebotplugin.gui;
-
 import com.avans.boebotplugin.services.Settings;
 import com.intellij.lang.jvm.JvmModifier;
 import com.intellij.openapi.compiler.ex.CompilerPathsEx;
@@ -201,8 +200,7 @@ public class BoeBotControlFrame extends JPanel implements ActionListener {
 		clearButton.addActionListener(e -> {
 			log.setText("");
 		});
-		
-		
+
 		new Timer(10, this).start();
 		
 	
@@ -273,6 +271,7 @@ public class BoeBotControlFrame extends JPanel implements ActionListener {
 		for(PsiDirectory sub : dir.getSubdirectories())
 			scanDir(sub);
 
+		System.out.println(dir.getName());
 		for(PsiFile file : dir.getFiles())
 		{
 			if(file instanceof PsiJavaFile)
@@ -307,7 +306,8 @@ public class BoeBotControlFrame extends JPanel implements ActionListener {
 
 		//VirtualFileSystem fs = module.getModuleFile().getFileSystem();
 
-		PsiDirectory root = PsiManager.getInstance(project).findDirectory(module.getModuleFile().getParent());
+		PsiDirectory root = PsiManager.getInstance(project).findDirectory(project.getBaseDir());
+		//PsiDirectory root = PsiManager.getInstance(project).findDirectory(module.getModuleFile().getParent());
 	//TODO: maybe use 'project.getBaseDir()' instead of module.getModuleFile().getFileSystem()
 
 		this.mainClass.removeAllItems();
