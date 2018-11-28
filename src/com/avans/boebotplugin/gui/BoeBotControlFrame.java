@@ -1,12 +1,14 @@
 package com.avans.boebotplugin.gui;
 import com.avans.boebotplugin.services.Settings;
 import com.intellij.lang.jvm.JvmModifier;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.compiler.ex.CompilerPathsEx;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.VirtualFileSystem;
 import com.intellij.psi.*;
 import com.intellij.task.ProjectTaskManager;
@@ -67,7 +69,22 @@ public class BoeBotControlFrame extends JPanel implements ActionListener {
 
 		Module module = ModuleManager.getInstance(this.project).getModules()[0];
 		String[] outputPaths = CompilerPathsEx.getOutputPaths(ModuleManager.getInstance(this.project).getModules());
+		if(outputPaths.length == 0) {
+
+			ApplicationManager.getApplication().invokeLater(() -> Messages.showDialog(
+					project,
+					"Please set an out path in your project preferences",
+					"Error opening panel",
+					"Please set an outpath in the project preferences and restart IntelliJ",
+					new String[] { Messages.OK_BUTTON },
+					0,
+					0,
+					Messages.getErrorIcon()
+			));
+			return;
+		}
 		outputRoot = outputPaths[0];
+
 		//project.getProjectFilePath()
 
 		// 		super("Boebot monitor for " + projectName + " in path " + packageDirectory);
