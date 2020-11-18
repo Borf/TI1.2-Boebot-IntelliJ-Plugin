@@ -31,6 +31,7 @@
       <projectTemplate projectType="BoeBot" templatePath="projectTemplates/Boebot_Application.zip" category="true" />
   </extensions>
 
+  <depends>com.intellij.java</depends>
 
   <actions>
     <group id="MyPlugin.SampleMenu" text="Boebot" description="BotBot actions menu">

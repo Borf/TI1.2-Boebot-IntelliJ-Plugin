@@ -3,6 +3,7 @@ package com.avans.boebotplugin.gui;
 import com.avans.boebotplugin.services.Settings;
 import com.intellij.lang.jvm.JvmModifier;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.compiler.CompilerPaths;
 import com.intellij.openapi.compiler.ex.CompilerPathsEx;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.ModuleManager;
@@ -65,7 +66,7 @@ public class BoeBotControlFrame extends JPanel implements ActionListener {
         if (this.project == null)
             throw new InvalidParameterException("Project cannot be null");
 
-        String[] outputPaths = CompilerPathsEx.getOutputPaths(ModuleManager.getInstance(this.project).getModules());
+        String[] outputPaths = CompilerPaths.getOutputPaths(ModuleManager.getInstance(this.project).getModules());
         if (outputPaths.length == 0) {
 
             ApplicationManager.getApplication().invokeLater(() -> Messages.showDialog(
@@ -73,7 +74,7 @@ public class BoeBotControlFrame extends JPanel implements ActionListener {
                     "Please set an out path in your project preferences",
                     "Error opening panel",
                     "Please set an outpath in the project preferences and restart IntelliJ",
-                    new String[]{Messages.OK_BUTTON},
+                    new String[]{Messages.getOkButton()},
                     0,
                     0,
                     Messages.getErrorIcon()
