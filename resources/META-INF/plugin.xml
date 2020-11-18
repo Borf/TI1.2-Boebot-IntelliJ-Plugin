@@ -1,20 +1,22 @@
 <idea-plugin>
   <id>com.AvansTI.Boebot</id>
   <name>BoeBot</name>
-  <version>1.05</version>
+  <version>1.1</version>
   <vendor url="https://www.github.com/avansti">Avans TI, Etiënne Goossens &amp; Johan Talboom</vendor>
 
   <description><![CDATA[
       A small plugin to upload code to your BoeBot. This plugin is made to facilitate the course "Hardware Interfacing", and allows students to easily upload code to a raspberry pi based BoeBot<br>
     ]]></description>
 
-  <change-notes><![CDATA[
+    <depends>com.intellij.modules.lang</depends>
+
+    <change-notes><![CDATA[
 
     ]]>
   </change-notes>
 
   <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/build_number_ranges.html for description -->
-  <idea-version since-build="173.0"/>
+  <idea-version since-build="182.0"/>
 
   <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/plugin_compatibility.html
        on how to target different products -->
@@ -36,5 +38,6 @@
       <action id="BoeBot.OpenPanel" class="com.avans.boebotplugin.actions.OpenBoeBotPanel" text="Open BoeBot Panel" description="Opens a panel to upload code to your BoeBot"/>
     </group>
   </actions>
+
 
 </idea-plugin>
